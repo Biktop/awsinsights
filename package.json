@@ -1,0 +1,76 @@
+{
+	"name": "awsinsights",
+	"displayName": "awsinsights",
+	"description": "",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.63.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCustomEditor:awsinsights.insights",
+		"onCommand:awsinsights.create"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"customEditors": [
+			{
+				"viewType": "awsinsights.insights",
+				"displayName": "AWS CloudWatch Insights",
+				"selector": [
+					{
+						"filenamePattern": "*.insights"
+					}
+				],
+				"priority": "default"
+			}
+		],
+		"commands": [
+			{
+				"command": "awsinsights.create",
+				"title": "CloudWatch Insights Create"
+			}
+		],
+		"languages": [
+			{
+				"id": "insights",
+				"aliases": [
+					"CloudWatch Insights"
+				],
+				"extensions": [
+					".insights"
+				]
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "yarn run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "yarn run compile && yarn run lint",
+		"lint": "eslint src --ext ts",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.4",
+		"@types/mocha": "^9.0.0",
+		"@types/node": "14.x",
+		"@types/vscode": "^1.63.0",
+		"@typescript-eslint/eslint-plugin": "^5.1.0",
+		"@typescript-eslint/parser": "^5.1.0",
+		"@vscode/test-electron": "^1.6.2",
+		"eslint": "^8.1.0",
+		"glob": "^7.1.7",
+		"mocha": "^9.1.3",
+		"typescript": "^4.4.4"
+	},
+	"dependencies": {
+		"@aws-sdk/client-cloudwatch-logs": "^3.45.0",
+		"@aws-sdk/credential-providers": "^3.46.0",
+		"@aws-sdk/util-credentials": "^3.46.0",
+		"handlebars": "^4.7.7",
+		"moment": "^2.29.1"
+	}
+}

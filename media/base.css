@@ -1,0 +1,70 @@
+body {
+	/* font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji; */
+	margin: 0;
+	/* padding: 10px 20px; */
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-editor-background);
+}
+
+.records-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 400px;
+}
+
+.records-table > thead > tr {
+  background-color: var(--vscode-panelSectionHeader-background);
+  color: var(--vscode-foreground);
+}
+
+.records-table > thead > tr > th,
+.records-table > tbody > tr > td {
+  text-align: left;
+  vertical-align: text-top;
+  padding: 12px 15px;
+  min-width: 120px;
+}
+
+.records-table > tbody > tr.row {
+  cursor: pointer;
+}
+
+.records-table > tbody > tr.even {
+  background-color: var(--vscode-tree-tableOddRowsBackground);
+}
+
+.records-table > tbody > tr:last-of-type {
+  border-bottom: 2px solid var(--vscode-panelSectionHeader-border);
+}
+
+.records-table > tbody > tr.row-detail {
+  box-shadow: 0 -1px var(--vscode-widget-shadow);
+}
+
+.detail-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.detail-table > tbody > tr > td {
+  padding-bottom: 4px;
+  text-align: left;
+}
+
+.detail-table > tbody > tr > td:first-of-type {
+  min-width: 130px;
+  padding-right: 8px;
+}
+
+.detail-table > tbody > tr > td:last-of-type {
+  width: 100%;
+}
+
+.hide-row {
+  display: none;
+}
+
+textarea {
+  color: var(--vscode-settings-textInputForeground);
+  border: 1px solid var(--vscode-settings-textInputBorder);
+}
