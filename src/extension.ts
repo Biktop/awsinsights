@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CloudWatchEditorProvider } from './cloudwatchEditor';
+import { CloudWatchEditorProvider } from './cloudWatchEditorProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	const provider = new CloudWatchEditorProvider(context);

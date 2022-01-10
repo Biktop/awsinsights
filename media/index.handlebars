@@ -12,7 +12,17 @@
   <div class="panel">
     <h1>Hello World!</h1>
 
-    <textarea cols="40", rows="10"></textarea>
+    <textarea id="query-filter" cols="40", rows="10"></textarea>
+
+    <input id="query-relative-value" type="number"  min="1" />
+    <select id="query-relative-type">
+      <option value="PTnM">mins</option>
+      <option value="PTnH">hours</option>
+      <option value="PnD">days</option>
+      <option value="PnW">weeks</option>
+      <option value="PnM">months</option>
+      <option value="PnY">years</option>
+    </select>
 
   </div>
 
@@ -25,7 +35,7 @@
   <div id="content"></div>
 
   <div>
-    <table class="records-table" >
+    <table class="records-table">
     </table>
   </div>
 

@@ -1,4 +1,6 @@
 (function() {
+  console.log('Init client');
+
   const vscode = acquireVsCodeApi();
 
   const btn = document.getElementById('btn-execute');
@@ -10,21 +12,32 @@
 
   });
 
-  const $textarea = document.getElementsByClassName('panel')[0].getElementsByTagName('TEXTAREA')[0];
+  const $relativetype = document.getElementById('query-relative-type');
+  $relativetype.addEventListener('input', (event) => updateQuery('relativeType', event.target.value));
+
+  const $relativevalue = document.getElementById('query-relative-value');
+  $relativevalue.addEventListener('input', (event) => updateQuery('relativeValue', event.target.value));
+
+  const $textarea = document.getElementById('query-filter');
   $textarea.addEventListener('input', (event) => updateQuery('queryString', event.target.value));
 
   const $table = document.getElementsByClassName('records-table')[0];
   $table.addEventListener('click', (event) => {
+    // Request open current record in separate window
     if (event.target.classList.contains('detail-request')) {
-      return vscode.postMessage({ type: 'open_request', payload: { id: event.target.innerHTML }});
+      const $tr = getParentNode(event.target.parentNode.parentNode, 'TR');
+
+      console.log($tr.dataset);
+      return vscode.postMessage({ type: 'open_request', payload: { id: event.target.innerHTML, timestamp: $tr.dataset.timestamp }});
     }
 
+    // Open/Close record
     const $row = getParentNode(event.target, 'TR');
     if ($row.classList.contains('row')) {
       const $next = $row.nextSibling;
       $next.classList.toggle('hide-row');
 
-      if (!$next.classList.contains('hide-row')) {
+      if (!$next.dataset.id && !$next.classList.contains('hide-row')) {
         vscode.postMessage({ type: 'expand', payload: { id: $row.id }});
       }
     }
@@ -35,15 +48,12 @@
 
     const handlers = { query: handleUpdateQuery, expand_result: handleUpdateDetail, result: handleUpdateRecords };
     handlers[data.type] && handlers[data.type].call(this, data);
-    
-    // vscode.setState(data);
   });
 
   const state = vscode.getState();
-
-	// if (state) {
-	// 	updateContent(state);
-	// }
+	if (state) {
+    state.query && handleUpdateQuery({ payload: state.query });
+	}
 
   function handleUpdateQuery({ payload }) {
     setState({ query: payload });
@@ -51,7 +61,54 @@
     const container = document.getElementById('content');
     container.innerHTML = JSON.stringify(payload);
 
+    if (payload.relativeTime) {
+
+      const mc = payload.relativeTime.match(/^(P|PT)(\d+)([MHDWY])$/);
+      console.log(mc);
+
+      $relativevalue.value = +mc[2];
+
+      const res = payload.relativeTime.replace(mc[2], 'n');
+
+      console.log(res);
+
+      $relativetype.value = res;
+
+
+
+
+    }
+
     $textarea.value = payload.queryString ?? '';
+  }
+
+  function handleUpdateRecords({ payload }) {
+    const $table = document.getElementsByClassName('records-table')[0]
+    const $fragment = document.createDocumentFragment();
+
+    $table.replaceChildren();
+
+    const { results } = payload;
+    if (!results.length) { return }
+
+    createElement($fragment, 'thead', (node) => {
+      createElement(node, 'tr', (node) => {
+        results[0].fields.forEach(({ field }) => createElement(node, 'th', { innerHTML: field }));
+      });
+    });
+
+    createElement($fragment, 'tbody', (node) => {
+      results.forEach((record, index) => {
+        createElement(node, 'tr', { id: record.id, className: `row ${!(index % 2) && 'even'}` }, (node) => {
+          record.fields.forEach(({ value }) => createElement(node, 'td', { innerHTML: value }));
+        });
+        createElement(node, 'tr', { id: `detail-${record.id}`, className: `row-detail ${!(index % 2) && 'even'} hide-row` }, (node) => {
+          createElement(node, 'td', { colSpan: record.fields.length, innerHTML: 'Loading…' });
+        });
+      });
+    });
+    
+    $table.replaceChildren($fragment);
   }
 
   function handleUpdateDetail({ payload }) {
@@ -75,33 +132,11 @@
       });
     });
     
-    const $tr = document.getElementById(`detail-${payload.id}`).firstChild;
-    $tr.replaceChildren($fragment);    
-  }
+    const $tr = document.getElementById(`detail-${payload.id}`);
+    $tr.firstChild.replaceChildren($fragment);
 
-  function handleUpdateRecords({ payload }) {
-    const { results } = payload;
-    const $fragment = document.createDocumentFragment();
-
-    createElement($fragment, 'thead', (node) => {
-      createElement(node, 'tr', (node) => {
-        results[0].fields.forEach(({ field }) => createElement(node, 'th', { innerHTML: field }));
-      });
-    });
-
-    createElement($fragment, 'tbody', (node) => {
-      results.forEach((record, index) => {
-        createElement(node, 'tr', { id: record.id, className: `row ${!(index % 2) && 'even'}` }, (node) => {
-          record.fields.forEach(({ value }) => createElement(node, 'td', { innerHTML: value }));
-        });
-        createElement(node, 'tr', { id: `detail-${record.id}`, className: `row-detail ${!(index % 2) && 'even'} hide-row` }, (node) => {
-          createElement(node, 'td', { colSpan: record.fields.length, innerHTML: 'Loading…' });
-        });
-      });
-    });
-    
-    const $table = document.getElementsByClassName('records-table')[0]
-    $table.replaceChildren($fragment);
+    $tr.dataset.id = payload.id;
+    $tr.dataset.timestamp = payload.record['@timestamp'];
   }
 
   function createElement(parent, tagName, options = {}, callback) {
@@ -128,6 +163,11 @@
   }
 
   function updateQuery(key, value) {
+    if (key === 'relativeType' || key === 'relativeValue') {
+      key = 'relativeTime';
+      value = $relativetype.value.replace('n', $relativevalue.value);
+    }
+
     const payload = { ...vscode.getState().query, ...{ [key]: value }};
     setState({ query: payload });
     vscode.postMessage({ type: 'query', payload });
