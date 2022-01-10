@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { readFileSync } from 'fs';
-import * as Handlebars from 'handlebars';
+import Handlebars from 'handlebars';
 import { CloudWatchClient } from './cloudWatchClient';
 import { CloudWatchController, InsightsQuery } from './cloudWatchController';
 import { runAction } from './utils';
@@ -16,7 +16,7 @@ export class CloudWatchEditorProvider implements vscode.CustomTextEditorProvider
 				// retainContextWhenHidden: true,
 			},
 		});
-	}
+	}	
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 		this.client = new CloudWatchClient();

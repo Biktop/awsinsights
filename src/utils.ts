@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 
 export async function runAction(action: Function, options?: any) {
 	try {

@@ -1,7 +1,5 @@
 # awsinsights README
 
-This is the README for your extension "awsinsights". After writing up a brief description, we recommend including the following sections.
-
 ## Features
 
 Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
@@ -39,14 +37,6 @@ Users appreciate release notes as you update your extension.
 
 Initial release of ...
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
 -----------------------------------------------------------------------------------------------------------
 ## Following extension guidelines
 
@@ -66,5 +56,3 @@ Ensure that you've read through the extensions guidelines and follow the best pr
 
 * [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
 * [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**

@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import * as vscode from 'vscode';
+import moment from 'moment';
+import vscode from 'vscode';
 import { StartQueryCommandInput } from '@aws-sdk/client-cloudwatch-logs';
 import { CloudWatchClient } from './cloudWatchClient';
 import { runAction, wait } from './utils';
