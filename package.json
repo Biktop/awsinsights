@@ -12,10 +12,22 @@
 	],
 	"activationEvents": [
 		"onCustomEditor:awsinsights.insights",
-		"onCommand:awsinsights.create"
+		"onCommand:awsinsights.create",
+		"onCommand:awsinsights.profile"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"configuration":[
+			{
+				"title": "CloudWatch Insights",
+				"properties": {
+					"awsinsights.aws.profile": {
+						"type": "string",
+						"description": "The name of the credential profile to obtain credentials from."
+					}
+				}
+			}
+		],
 		"customEditors": [
 			{
 				"viewType": "awsinsights.insights",
@@ -30,8 +42,12 @@
 		],
 		"commands": [
 			{
+				"command": "awsinsights.profile",
+				"title": "CloudWatch Insights: Choose AWS Profile…"
+			},
+			{
 				"command": "awsinsights.create",
-				"title": "CloudWatch Insights Create"
+				"title": "CloudWatch Insights: Create Query…"
 			}
 		],
 		"languages": [
