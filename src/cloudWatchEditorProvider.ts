@@ -62,7 +62,7 @@ export class CloudWatchEditorProvider implements vscode.CustomTextEditorProvider
 	 */
 	public async handleCreateQuery() {
 		await runAction(async () => {
-			const logGroupNames = await this.pickLogGroups();		
+			const logGroupNames = await this.client.pickLogGroups();		
 			if (!logGroupNames.length) { return }
 
 			const content: InsightsQuery = {
@@ -78,18 +78,6 @@ export class CloudWatchEditorProvider implements vscode.CustomTextEditorProvider
 		}, { title: 'Select group name…'});
 	}
 	
-	/**
-	 * Display picker with all available log groups.
-	 */
-	private async pickLogGroups(): Promise<Array<string>> {
-		const logGroupsNames = await this.client.describeLogGroups();
-		const items = await vscode.window.showQuickPick(logGroupsNames.map(label => ({ label })), {
-			title: 'test',
-			canPickMany: true,
-		});
-		return items?.map(({ label }) => label) ?? [];
-	}
-
 	/**
 	 * Display picker with all available aws profiles.
 	 */

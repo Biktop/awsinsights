@@ -1,4 +1,5 @@
-import { parseKnownFiles, getMasterProfileName } from '@aws-sdk/util-credentials';
+import vscode from 'vscode';
+import { parseKnownFiles } from '@aws-sdk/util-credentials';
 import { fromIni, fromProcess } from '@aws-sdk/credential-providers';
 import { CloudWatchLogsClient, CloudWatchLogsClientConfig } from '@aws-sdk/client-cloudwatch-logs';
 import { StartQueryCommandInput, StartQueryCommand, DescribeLogGroupsCommand, GetQueryResultsCommand, GetLogRecordCommand } from '@aws-sdk/client-cloudwatch-logs';
@@ -58,6 +59,20 @@ export class CloudWatchClient {
   }
 
   /**
+	 * Display picker with all available log groups.
+	 */
+	public async pickLogGroups(picked?: Array<string>): Promise<Array<string>> {
+    const selected = new Set(picked ?? []);
+		const logGroupsNames = await this.describeLogGroups();
+
+		const items = await vscode.window.showQuickPick(logGroupsNames.map(label => ({ label, picked: selected.has(label) })), {
+			title: 'Select a log group',
+			canPickMany: true,
+		});
+		return items?.map(({ label }) => label) ?? [];
+	}
+
+  /**
    * Retrive single log record.
    */
   public async getLogRecord(logRecordPointer: string): Promise<any> {
@@ -85,8 +100,12 @@ async function createConfiguration(profile: string): Promise<CloudWatchLogsClien
   const data = profiles[profile] ?? {};
   const region = data.region ?? 'us-east-1';
 
-  if (data[SHARED_CREDENTIAL_PROPERTIES.CREDENTIAL_PROCESS]) {
+  if (!!data[SHARED_CREDENTIAL_PROPERTIES.CREDENTIAL_PROCESS]) {
     const credentials = await fromProcess({ profile })();
+    return { credentials, region };
+  }
+  else if (!!data[SHARED_CREDENTIAL_PROPERTIES.AWS_ACCESS_KEY_ID]) {
+    const credentials = await fromIni({ profile })();
     return { credentials, region };
   }
 
@@ -94,7 +113,8 @@ async function createConfiguration(profile: string): Promise<CloudWatchLogsClien
 }
 
 function isValidProfile(data: any = {}): Boolean {
-  return !!data[SHARED_CREDENTIAL_PROPERTIES.CREDENTIAL_PROCESS];
+  return !!data[SHARED_CREDENTIAL_PROPERTIES.CREDENTIAL_PROCESS]
+    || !!(data[SHARED_CREDENTIAL_PROPERTIES.AWS_ACCESS_KEY_ID] && data[SHARED_CREDENTIAL_PROPERTIES.AWS_SECRET_ACCESS_KEY]);
 }
 
 const SHARED_CREDENTIAL_PROPERTIES = {

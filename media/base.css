@@ -1,5 +1,9 @@
 @import url(./vscode.css);
 
+.hide {
+  display: none !important;
+}
+
 .records-table {
   border-collapse: collapse;
   width: 100%;
@@ -56,4 +60,105 @@
 
 .hide-row {
   display: none;
+}
+
+/**
+ * Panel styles 
+ */
+
+.panel {
+  /* margin: -var(--container-paddding) 0px; */
+  width: 100%;
+}
+
+.panel:hover {
+  background: var(--vscode-settings-rowHoverBackground);
+}
+
+.panel-settings {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  align-content: flex-start;
+  /* margin: -var(--container-paddding) 0px; */
+}
+
+.panel-settings .title {
+  font-weight: bold;
+}
+
+.panel-settings input {
+  height: 26px;
+}
+
+
+.panel-settings > .groups {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  margin: var(--container-paddding) 0px;
+}
+
+.panel-settings > .groups .items {
+  height: 26px;
+  background-color: salmon;
+}
+
+
+
+.panel-settings > .spans {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  margin: var(--container-paddding) 0px;
+}
+
+
+.panel-settings > .spans .span-selector {
+
+}
+
+.panel-settings > .spans .span-selector a {
+  color: var(--vscode-breadcrumb-foreground);
+}
+
+.panel-settings > .spans .span-selector a:hover {
+  color: var(--vscode-breadcrumb-focusForeground);
+}
+
+.panel-settings > .spans .span-selector .span-active {
+  color: var(--vscode-breadcrumb-activeSelectionForeground);
+}
+
+.panel-settings .span-relative,
+.panel-settings .span-absolute {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  align-content: center;
+  flex-wrap: nowrap;
+  margin-top: 6px;
+}
+
+.panel-settings .span-relative input {
+  margin-right: 4px;
+  width: 90px;
+}
+
+.panel-settings .span-relative select {
+  /* margin-right: 4px; */
+  width: 90px;
+}
+
+
+.panel-settings .span-absolute input {
+  margin-left: 4px;
+  max-width: 180px;
 }

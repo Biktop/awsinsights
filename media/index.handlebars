@@ -10,19 +10,48 @@
 
 <body>
   <div class="panel">
-    <h1>Hello World!</h1>
 
-    <textarea id="query-filter" cols="40", rows="10"></textarea>
+    <h2>Logs Insights</h2>
 
-    <input id="query-relative-value" type="number"  min="1" />
-    <select id="query-relative-type">
-      <option value="PTnM">mins</option>
-      <option value="PTnH">hours</option>
-      <option value="PnD">days</option>
-      <option value="PnW">weeks</option>
-      <option value="PnM">months</option>
-      <option value="PnY">years</option>
-    </select>
+    <div class="panel-settings">
+
+      <div class="groups">
+        <div>
+          <span class="title">Select&nbsp;logs:&nbsp;</span>
+        </div>
+        <div class="items"><a href="#" id="groups-list"></a></div>
+      </div>
+
+      <div class="spans">
+        <div>
+          <span class="title">Select&nbsp;time:&nbsp;</span>
+          <span class="span-selector"><a href="#" for="span-relative">Relative</a>&nbsp;/&nbsp;<a href="#" for="span-absolute">Absolute</a></span>
+        </div>
+
+        <div class="span-relative hide" id="span-relative">
+          <input id="query-relative-value" type="number" min="1" />
+
+          <select id="query-relative-type">
+            <option value="PTnM">mins</option>
+            <option value="PTnH">hours</option>
+            <option value="PnD">days</option>
+            <option value="PnW">weeks</option>
+            <option value="PnM">months</option>
+            <option value="PnY">years</option>
+          </select>
+        </div>
+
+        <div class="span-absolute hide" id="span-absolute">
+          <input type="datetime-local" />
+          <input type="datetime-local" />
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+      <textarea id="query-filter" rows="6"></textarea>
+    </div>
 
   </div>
 

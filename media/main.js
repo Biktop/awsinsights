@@ -3,14 +3,26 @@
 
   const vscode = acquireVsCodeApi();
 
+  const $groups_list = document.getElementById('groups-list');
+  $groups_list.addEventListener('click', () => vscode.postMessage({ type: 'select' }));
+
+
   const btn = document.getElementById('btn-execute');
   btn.addEventListener('click', () => {
+    
 
     vscode.postMessage({ type: 'execute' });
 
 
 
   });
+
+  const $spanSelector = document.querySelectorAll('.spans .span-selector')[0];
+  $spanSelector.addEventListener('click', (event) => {
+    if (event.target.classList.contains('span-active')) { return }
+    event.target.getAttribute('for') === 'span-relative' ? selectRelativeSpan() : selectAbsoluteSpan();
+  });
+
 
   const $relativetype = document.getElementById('query-relative-type');
   $relativetype.addEventListener('input', (event) => updateQuery('relativeType', event.target.value));
@@ -55,20 +67,20 @@
     state.query && handleUpdateQuery({ payload: state.query });
 	}
 
-  function handleUpdateQuery({ payload }) {
-    setState({ query: payload });
+  function handleUpdateQuery({ payload: query }) {
+    setState({ query });
 
     const container = document.getElementById('content');
-    container.innerHTML = JSON.stringify(payload);
+    container.innerHTML = JSON.stringify(query);
 
-    if (payload.relativeTime) {
+    if (query.relativeTime) {
 
-      const mc = payload.relativeTime.match(/^(P|PT)(\d+)([MHDWY])$/);
+      const mc = query.relativeTime.match(/^(P|PT)(\d+)([MHDWY])$/);
       console.log(mc);
 
       $relativevalue.value = +mc[2];
 
-      const res = payload.relativeTime.replace(mc[2], 'n');
+      const res = query.relativeTime.replace(mc[2], 'n');
 
       console.log(res);
 
@@ -79,9 +91,72 @@
 
     }
 
-    $textarea.value = payload.queryString ?? '';
+    // Log groups
+    const logGroupNames = query.logGroupName ? [query.logGroupName] : query.logGroupNames;
+    $groups_list.innerHTML = logGroupNames.join(', ');
+
+    // Time spans
+    // $spanSelector
+
+    query.relativeTime ? selectRelativeSpan() : selectAbsoluteSpan();
+
+
+    
+
+    $textarea.value = query.queryString ?? '';
   }
 
+  function selectRelativeSpan() {
+
+    console.log('selectRelativeSpan');
+
+    $spanSelector.firstChild.classList.add('span-active');
+    $spanSelector.lastChild.classList.remove('span-active');
+
+    const $spanRelative = document.getElementById('span-relative');
+    const $spanAbsolute = document.getElementById('span-absolute');
+
+    $spanRelative.classList.remove('hide');
+    $spanAbsolute.classList.add('hide');
+
+
+
+
+
+
+
+
+
+    // $spanSelector.firstChild.classList.toggle('span-active');
+    // $spanSelector.lastChild.classList.toggle('span-active');
+
+
+    // console.log('AAAA', event.target.getAttribute('for'));
+
+
+
+  }
+
+  function selectAbsoluteSpan() {
+
+    console.log('selectAbsoluteSpan');
+
+    $spanSelector.firstChild.classList.remove('span-active');
+    $spanSelector.lastChild.classList.add('span-active');
+
+    const $spanRelative = document.getElementById('span-relative');
+    const $spanAbsolute = document.getElementById('span-absolute');
+
+    $spanRelative.classList.add('hide');
+    $spanAbsolute.classList.remove('hide');
+
+
+
+  }
+
+  /**
+   * Render records
+   */
   function handleUpdateRecords({ payload }) {
     const $table = document.getElementsByClassName('records-table')[0]
     const $fragment = document.createDocumentFragment();
@@ -111,6 +186,9 @@
     $table.replaceChildren($fragment);
   }
 
+  /**
+   * Render record's detail
+   */  
   function handleUpdateDetail({ payload }) {
     const $fragment = document.createDocumentFragment();
 
@@ -139,6 +217,9 @@
     $tr.dataset.timestamp = payload.record['@timestamp'];
   }
 
+  /**
+   * Create element helper
+   */
   function createElement(parent, tagName, options = {}, callback) {
     if (typeof options === 'function') {
       callback = options;
@@ -149,10 +230,13 @@
     Object.keys(options).forEach((key) => { $node[key] = options[key] });
 
     callback && callback($node);
-    parent.appendChild($node);
+    parent && parent.appendChild($node);
     return $node;
   }
 
+  /**
+   * Find parent element helper
+   */  
   function getParentNode(target, tagName) {
     let current = target.parentNode;
     while (current && current.tagName !== tagName) {

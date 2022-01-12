@@ -93,11 +93,21 @@ export class CloudWatchController {
 	}
 
 	private async handleUpdateQuery(message: any) {
-		const content = JSON.stringify(message.payload, null, 2);
+		await this.updateInsightsQuery(message.payload);
+	}
 
-		const edit = new vscode.WorkspaceEdit();
-		edit.replace(this.document!.uri, new vscode.Range(0, 0, this.document!.lineCount, 0), content);
-		await vscode.workspace.applyEdit(edit);
+	private async handleSelectGroups(message: any) {		
+		await runAction(async () => {
+			const query = this.insightsQuery;
+
+			const logGroupNames = await this.client.pickLogGroups(query.logGroupName ? [query.logGroupName] : this.insightsQuery.logGroupNames);
+			if (!logGroupNames.length) { return }
+			query.logGroupNames = logGroupNames;
+			query.logGroupName = undefined;
+
+			this.updateInsightsQuery(query);
+			this.postMessage({ type: 'query', payload: query });
+		});
 	}
 
 	/**
@@ -117,8 +127,17 @@ export class CloudWatchController {
 		const handlers: { [key: string]: Function } = {
 			query: this.handleUpdateQuery, execute: this.handleStartQuery,
 			expand: this.handleExpandRecord, open_request: this.handleOpenRequest,
+			select: this.handleSelectGroups,
 		};
 		handlers[message.type] && handlers[message.type].call(this, message);
+	}
+
+	private async updateInsightsQuery(query: InsightsQuery) {
+		const content = JSON.stringify(query, null, 2);
+
+		const edit = new vscode.WorkspaceEdit();
+		edit.replace(this.document!.uri, new vscode.Range(0, 0, this.document!.lineCount, 0), content);
+		await vscode.workspace.applyEdit(edit);
 	}
 
 	/**

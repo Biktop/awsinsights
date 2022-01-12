@@ -27,6 +27,7 @@ img {
 }
 
 body {
+	min-width: 600px;
   padding: 0 var(--container-paddding);
 	color: var(--vscode-foreground);
 	font-size: var(--vscode-font-size);
@@ -37,12 +38,13 @@ body {
 	/* margin: 0; */
 }
 
-*:focus {
-	outline-color: var(--vscode-focusBorder) !important;
-}
-
 a {
 	color: var(--vscode-textLink-foreground);
+	text-decoration: none;
+}
+
+*:focus {
+	outline-color: var(--vscode-focusBorder) !important;
 }
 
 a:hover,
