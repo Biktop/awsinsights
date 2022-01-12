@@ -5,6 +5,7 @@
 	"version": "0.0.1",
 	"author": "Victor Savostin",
 	"license": "MIT",
+	"repository": "https://github.com/Biktop/awsinsights.git",
 	"engines": {
 		"vscode": "^1.63.0"
 	},
