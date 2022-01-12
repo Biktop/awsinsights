@@ -2,7 +2,7 @@ import vscode from 'vscode';
 import { parseKnownFiles } from '@aws-sdk/util-credentials';
 import { fromIni, fromProcess } from '@aws-sdk/credential-providers';
 import { CloudWatchLogsClient, CloudWatchLogsClientConfig } from '@aws-sdk/client-cloudwatch-logs';
-import { StartQueryCommandInput, StartQueryCommand, DescribeLogGroupsCommand, GetQueryResultsCommand, GetLogRecordCommand } from '@aws-sdk/client-cloudwatch-logs';
+import { StartQueryCommandInput, StartQueryCommand, StopQueryCommand, DescribeLogGroupsCommand, GetQueryResultsCommand, GetLogRecordCommand } from '@aws-sdk/client-cloudwatch-logs';
 import { runAction } from './utils';
 
 export class CloudWatchClient {
@@ -43,6 +43,14 @@ export class CloudWatchClient {
   }
 
   /**
+   * Stop cloudwatch insights query.
+   */
+  public async stopQuery(queryId: string) {
+    const client = await this.resolveClient();
+    await client.send(new StopQueryCommand({ queryId }));
+  }
+
+  /**
    * Retrive cloudwatch log.
    */
   public async queryResults(queryId: string): Promise<any> {
@@ -59,18 +67,18 @@ export class CloudWatchClient {
   }
 
   /**
-	 * Display picker with all available log groups.
-	 */
-	public async pickLogGroups(picked?: Array<string>): Promise<Array<string>> {
+   * Display picker with all available log groups.
+   */
+  public async pickLogGroups(picked?: Array<string>): Promise<Array<string>> {
     const selected = new Set(picked ?? []);
-		const logGroupsNames = await this.describeLogGroups();
+    const logGroupsNames = await this.describeLogGroups();
 
-		const items = await vscode.window.showQuickPick(logGroupsNames.map(label => ({ label, picked: selected.has(label) })), {
-			title: 'Select a log group',
-			canPickMany: true,
-		});
-		return items?.map(({ label }) => label) ?? [];
-	}
+    const items = await vscode.window.showQuickPick(logGroupsNames.map(label => ({ label, picked: selected.has(label) })), {
+      title: 'Select a log group',
+      canPickMany: true,
+    });
+    return items?.map(({ label }) => label) ?? [];
+  }
 
   /**
    * Retrive single log record.
@@ -96,7 +104,7 @@ export class CloudWatchClient {
 
 async function createConfiguration(profile: string): Promise<CloudWatchLogsClientConfig> {
   const profiles = await parseKnownFiles({ profile });
-  
+
   const data = profiles[profile] ?? {};
   const region = data.region ?? 'us-east-1';
 

@@ -22,6 +22,8 @@ export class CloudWatchController {
 	public static readonly viewType = 'awsinsights.insights';
 	public static readonly language = 'insights';
 
+	private queryId: string | undefined;
+
 	public static async activate(context: vscode.ExtensionContext, client: CloudWatchClient, document: vscode.TextDocument,		
 		webviewPanel: vscode.WebviewPanel) {
 
@@ -54,17 +56,29 @@ export class CloudWatchController {
 			// await this.postMessage({ type: 'result', payload: sample });
 
 			const query = this.startQueryRequest;
-			const queryId = await this.client.startQuery(query);
+			this.queryId = await this.client.startQuery(query);
+			await wait(1000);
 
 			while (true) {
-				await wait(1000);
+				if (!this.queryId) { return await this.postMessage({ type: 'result', status: 'Cancelled' }) }
 
-				const payload = await this.client.queryResults(queryId);
+				const payload = await this.client.queryResults(this.queryId);				
 				await this.postMessage({ type: 'result', payload });
 
 				if (payload.status !== 'Running') { break }
+				await wait(1000);
 			}		
 		}, { title: 'Retrieve records…'});
+	}
+
+	/**
+	 * Stop query.
+	 */
+	private async handleStopQuery() {
+		const queryId = this.queryId;
+		this.queryId = undefined;
+
+		queryId && await this.client.stopQuery(queryId!);
 	}
 
 	private async handleExpandRecord(message: any) {
@@ -125,9 +139,9 @@ export class CloudWatchController {
 		console.log('Get message from client:', message.type);
 		
 		const handlers: { [key: string]: Function } = {
-			query: this.handleUpdateQuery, execute: this.handleStartQuery,
+			execute: this.handleStartQuery, stop: this.handleStopQuery,
 			expand: this.handleExpandRecord, open_request: this.handleOpenRequest,
-			select: this.handleSelectGroups,
+			query: this.handleUpdateQuery, select: this.handleSelectGroups,
 		};
 		handlers[message.type] && handlers[message.type].call(this, message);
 	}

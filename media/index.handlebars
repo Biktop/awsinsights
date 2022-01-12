@@ -5,65 +5,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="{{styleMainUri}}" rel="stylesheet" />
-  <title>Cat Scratch</title>
+  <title>AWS CloudWatch Insights</title>
 </head>
 
 <body>
   <div class="panel">
+    <div class="panel-body">
+      <h2>Logs Insights&nbsp;<a href="#" id="start">&#x25B6;</a></h2>
 
-    <h2>Logs Insights</h2>
+      <div class="panel-settings">
+        <textarea id="query-filter" rows="6"></textarea>
 
-    <div class="panel-settings">
-
-      <div class="groups">
         <div>
-          <span class="title">Select&nbsp;logs:&nbsp;</span>
+          <div class="groups">
+            <div class="title">Select&nbsp;logs</div>
+            <a class="items" href="#" id="groups-list"></a>
+          </div>
+
+          <div class="spans">
+            <div>
+              <span class="title">Select&nbsp;time:&nbsp;</span>
+              <span class="span-selector"><a href="#" for="span-relative">Relative</a>&nbsp;/&nbsp;<a href="#"
+                  for="span-absolute">Absolute</a></span>
+            </div>
+
+            <div class="span-relative hide" id="span-relative">
+              <input id="query-relative-value" type="number" min="1" />
+
+              <select id="query-relative-type">
+                <option value="PTnM">minutes</option>
+                <option value="PTnH">hours</option>
+                <option value="PnD">days</option>
+                <option value="PnW">weeks</option>
+                <option value="PnM">months</option>
+                <option value="PnY">years</option>
+              </select>
+            </div>
+
+            <div class="span-absolute hide" id="span-absolute">
+              <input type="datetime-local" />
+              <input type="datetime-local" />
+            </div>
+          </div>
         </div>
-        <div class="items"><a href="#" id="groups-list"></a></div>
       </div>
 
-      <div class="spans">
-        <div>
-          <span class="title">Select&nbsp;time:&nbsp;</span>
-          <span class="span-selector"><a href="#" for="span-relative">Relative</a>&nbsp;/&nbsp;<a href="#" for="span-absolute">Absolute</a></span>
-        </div>
-
-        <div class="span-relative hide" id="span-relative">
-          <input id="query-relative-value" type="number" min="1" />
-
-          <select id="query-relative-type">
-            <option value="PTnM">mins</option>
-            <option value="PTnH">hours</option>
-            <option value="PnD">days</option>
-            <option value="PnW">weeks</option>
-            <option value="PnM">months</option>
-            <option value="PnY">years</option>
-          </select>
-        </div>
-
-        <div class="span-absolute hide" id="span-absolute">
-          <input type="datetime-local" />
-          <input type="datetime-local" />
-        </div>
-      </div>
-
-    </div>
-
-    <div>
-      <textarea id="query-filter" rows="6"></textarea>
-    </div>
-
-  </div>
-
-  <div class="notes">
-    <div class="add-button">
-      <button id="btn-execute">Scratch!</button>
     </div>
   </div>
 
-  <div id="content"></div>
-
-  <div>
+  <div class="records">
     <table class="records-table">
     </table>
   </div>

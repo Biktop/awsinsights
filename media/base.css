@@ -4,6 +4,10 @@
   display: none !important;
 }
 
+.records {
+  padding: 0 var(--container-paddding);
+}
+
 .records-table {
   border-collapse: collapse;
   width: 100%;
@@ -62,26 +66,32 @@
   display: none;
 }
 
-/**
- * Panel styles 
- */
-
+/* Panel styles */
 .panel {
-  /* margin: -var(--container-paddding) 0px; */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: flex-start;
   width: 100%;
+  padding: var(--container-paddding) 0px;
 }
 
 .panel:hover {
   background: var(--vscode-settings-rowHoverBackground);
 }
 
+.panel > .panel-body {
+  padding: 0 var(--container-paddding);
+}
+
 .panel-settings {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: stretch;
   align-content: flex-start;
-  /* margin: -var(--container-paddding) 0px; */
+  gap: 20px;
+  padding-top: var(--container-paddding);
 }
 
 .panel-settings .title {
@@ -92,48 +102,49 @@
   height: 26px;
 }
 
+.panel-settings > *:first-of-type {
+  flex: 1 0 auto;
+}
 
-.panel-settings > .groups {
+.panel-settings > div:last-of-type {
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: stretch;
   align-content: flex-start;
-  flex-wrap: wrap;
-  margin: var(--container-paddding) 0px;
+  gap: 20px;
 }
 
-.panel-settings > .groups .items {
-  height: 26px;
-  background-color: salmon;
-}
-
-
-
-.panel-settings > .spans {
+.panel-settings .groups {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-end;
-  align-content: flex-start;
-  flex-wrap: wrap;
-  margin: var(--container-paddding) 0px;
 }
 
-
-.panel-settings > .spans .span-selector {
-
+.panel-settings .groups .items {
+  text-align: right;
+  min-height: 26px;
+  max-width: 320px;
 }
 
-.panel-settings > .spans .span-selector a {
+.panel-settings .spans {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
+}
+
+.panel-settings .spans .span-selector a {
   color: var(--vscode-breadcrumb-foreground);
 }
 
-.panel-settings > .spans .span-selector a:hover {
+.panel-settings .spans .span-selector a:hover {
   color: var(--vscode-breadcrumb-focusForeground);
 }
 
-.panel-settings > .spans .span-selector .span-active {
+.panel-settings .spans .span-selector .span-active {
   color: var(--vscode-breadcrumb-activeSelectionForeground);
 }
 
@@ -157,8 +168,7 @@
   width: 90px;
 }
 
-
 .panel-settings .span-absolute input {
   margin-left: 4px;
-  max-width: 180px;
+  max-width: 150px;
 }

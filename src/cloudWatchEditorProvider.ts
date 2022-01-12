@@ -16,7 +16,7 @@ export class CloudWatchEditorProvider implements vscode.CustomTextEditorProvider
 		return vscode.window.registerCustomEditorProvider(CloudWatchController.viewType, this, {
 			webviewOptions: {
 				enableFindWidget: true,
-				// retainContextWhenHidden: true,
+				retainContextWhenHidden: true,
 			},
 		});
 	}	

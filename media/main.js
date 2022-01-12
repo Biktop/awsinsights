@@ -1,20 +1,13 @@
 (function() {
-  console.log('Init client');
-
   const vscode = acquireVsCodeApi();
+  let status = 'Complete';
 
   const $groups_list = document.getElementById('groups-list');
   $groups_list.addEventListener('click', () => vscode.postMessage({ type: 'select' }));
 
-
-  const btn = document.getElementById('btn-execute');
-  btn.addEventListener('click', () => {
-    
-
-    vscode.postMessage({ type: 'execute' });
-
-
-
+  const $start = document.getElementById('start');
+  $start.addEventListener('click', () => {
+    status !== 'Complete' ? stopQuery() : startQuery();
   });
 
   const $spanSelector = document.querySelectorAll('.spans .span-selector')[0];
@@ -22,7 +15,6 @@
     if (event.target.classList.contains('span-active')) { return }
     event.target.getAttribute('for') === 'span-relative' ? selectRelativeSpan() : selectAbsoluteSpan();
   });
-
 
   const $relativetype = document.getElementById('query-relative-type');
   $relativetype.addEventListener('input', (event) => updateQuery('relativeType', event.target.value));
@@ -67,11 +59,22 @@
     state.query && handleUpdateQuery({ payload: state.query });
 	}
 
+  function startQuery() {
+    status = 'Running';
+    vscode.postMessage({ type: 'execute' });
+
+    $table.replaceChildren();
+    $start.innerHTML = '&#x25A0;';
+  }
+
+  function stopQuery() {
+    status = 'Complete';
+    vscode.postMessage({ type: 'stop' });
+    $start.innerHTML = '&#x25B6;';
+  }
+
   function handleUpdateQuery({ payload: query }) {
     setState({ query });
-
-    const container = document.getElementById('content');
-    container.innerHTML = JSON.stringify(query);
 
     if (query.relativeTime) {
 
@@ -161,7 +164,10 @@
     const $table = document.getElementsByClassName('records-table')[0]
     const $fragment = document.createDocumentFragment();
 
-    $table.replaceChildren();
+    status = payload.status;
+    if (status !== 'Running') {
+      $start.innerHTML = '&#x25B6;';
+    }
 
     const { results } = payload;
     if (!results.length) { return }
