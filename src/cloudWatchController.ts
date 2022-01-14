@@ -23,6 +23,7 @@ export class CloudWatchController {
 	public static readonly language = 'insights';
 
 	private queryId: string | undefined;
+	private ignoreDocumentVersion: number | undefined;
 
 	public static async activate(context: vscode.ExtensionContext, client: CloudWatchClient, document: vscode.TextDocument,		
 		webviewPanel: vscode.WebviewPanel) {
@@ -38,8 +39,8 @@ export class CloudWatchController {
 		private webviewPanel: vscode.WebviewPanel) {
 
 		const receiveMessageSubscription = webviewPanel.webview.onDidReceiveMessage(e => this.handleReceiveMessage(e));
-		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {			
-			if (e.document.uri.toString() === document.uri.toString()) { this.handleUpdateDocument() }
+		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
+			if (this.ignoreDocumentVersion !== e.document.version && e.document.uri.toString() === document.uri.toString()) { this.handleUpdateDocument() }
 		});
 
 		webviewPanel.onDidDispose(() => {
@@ -65,7 +66,9 @@ export class CloudWatchController {
 
 				if (payload.status !== 'Running') { break }
 				await wait(1000);
-			}		
+			}
+			vscode.window.showInformationMessage(`The query was completed.`);
+
 		}, { title: 'Retrieve records…'});
 	}
 
@@ -94,7 +97,7 @@ export class CloudWatchController {
 			logGroupName, logGroupNames,
 			startTime: moment(timestamp).subtract(15, 'minutes').unix(),
 			endTime: moment(timestamp).add(15, 'minutes').unix(),
-			queryString: `fields @timestamp, @message | sort @timestamp desc | filter @requestId = '${message.payload.id}'`,
+			queryString: `fields @timestamp, @message\n | sort @timestamp desc\n | filter @requestId = '${message.payload.id}'`,
 		}
 
 		const document = await vscode.workspace.openTextDocument({
@@ -129,10 +132,22 @@ export class CloudWatchController {
 		this.webviewPanel?.webview.postMessage(data);
 	}
 
+	/**
+	 * Update UI from document.
+	 */
 	private async handleUpdateDocument() {
-		await this.postMessage({ type: 'query', payload: this.insightsQuery })
+		try {
+			console.log('handleUpdateDocument');
+			await this.postMessage({ type: 'query', payload: this.insightsQuery })
+		}
+		catch (error: any) {
+			vscode.window.showErrorMessage(`Failed to parse query: ${error.message}`);
+		}
 	}
 
+	/**
+	 * Receive messages from UI.
+	 */
 	private handleReceiveMessage(message: any) {
 		console.log('Get message from client:', message.type);
 		
@@ -144,8 +159,12 @@ export class CloudWatchController {
 		handlers[message.type] && handlers[message.type].call(this, message);
 	}
 
-	private async updateInsightsQuery(query: InsightsQuery) {
+	/**
+	 * Sync changes from UI with document.
+	 */
+	private async updateInsightsQuery(query: InsightsQuery) {		
 		const content = JSON.stringify(query, null, 2);
+		this.ignoreDocumentVersion = this.document.version + 1;
 
 		const edit = new vscode.WorkspaceEdit();
 		edit.replace(this.document!.uri, new vscode.Range(0, 0, this.document!.lineCount, 0), content);
@@ -161,7 +180,7 @@ export class CloudWatchController {
 			return JSON.parse(content);
 		}
 		catch (error: any) {
-			throw new Error(`Failed to parse insights filter: ${error.message}`)
+			throw new Error(`Failed to parse insights filter: ${error.message}`);
 		}
 	}
 

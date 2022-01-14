@@ -2,31 +2,32 @@
   const vscode = acquireVsCodeApi();
   let status = 'Complete';
 
-  const $groups_list = document.getElementById('groups-list');
-  $groups_list.addEventListener('click', () => vscode.postMessage({ type: 'select' }));
+  const $startButton = document.getElementById('start');
+  $startButton.addEventListener('click', () => status !== 'Complete' ? handleStopQuery() : handleStartQuery());
 
-  const $start = document.getElementById('start');
-  $start.addEventListener('click', () => {
-    status !== 'Complete' ? stopQuery() : startQuery();
-  });
+  const $groupsList = document.getElementById('groups-list');
+  $groupsList.addEventListener('click', () => vscode.postMessage({ type: 'select' }));
 
   const $spanSelector = document.querySelectorAll('.spans .span-selector')[0];
-  $spanSelector.addEventListener('click', (event) => {
-    if (event.target.classList.contains('span-active')) { return }
-    event.target.getAttribute('for') === 'span-relative' ? selectRelativeSpan() : selectAbsoluteSpan();
-  });
+  $spanSelector.addEventListener('click', (event) => handleSelectSpan(event.target.id === 'selector-span-relative'));
 
-  const $relativetype = document.getElementById('query-relative-type');
-  $relativetype.addEventListener('input', (event) => updateQuery('relativeType', event.target.value));
+  const $relativeType = document.getElementById('query-relative-type');
+  $relativeType.addEventListener('input', (event) => updateQuery('relativeType', event.target.value));
 
-  const $relativevalue = document.getElementById('query-relative-value');
-  $relativevalue.addEventListener('input', (event) => updateQuery('relativeValue', event.target.value));
+  const $relativeValue = document.getElementById('query-relative-value');
+  $relativeValue.addEventListener('input', (event) => updateQuery('relativeValue', event.target.value));
 
-  const $textarea = document.getElementById('query-filter');
-  $textarea.addEventListener('input', (event) => updateQuery('queryString', event.target.value));
+  const $absoluteStartValue = document.getElementById('absolute-start-value');
+  $absoluteStartValue.addEventListener('change', (event) => updateQuery('startTime', Date.parse(event.target.value) / 1000));
 
-  const $table = document.getElementsByClassName('records-table')[0];
-  $table.addEventListener('click', (event) => {
+  const $absoluteEndValue = document.getElementById('absolute-end-value');
+  $absoluteEndValue.addEventListener('change', (event) => updateQuery('endTime', Date.parse(event.target.value) / 1000));
+
+  const $filterValue = document.getElementById('query-filter');
+  $filterValue.addEventListener('input', (event) => updateQuery('queryString', event.target.value));
+
+  const $recordsTable = document.getElementsByClassName('records-table')[0];
+  $recordsTable.addEventListener('click', (event) => {
     // Request open current record in separate window
     if (event.target.classList.contains('detail-request')) {
       const $tr = getParentNode(event.target.parentNode.parentNode, 'TR');
@@ -59,114 +60,93 @@
     state.query && handleUpdateQuery({ payload: state.query });
 	}
 
-  function startQuery() {
+  /**
+   * Start query
+   */
+  function handleStartQuery() {
     status = 'Running';
     vscode.postMessage({ type: 'execute' });
 
-    $table.replaceChildren();
-    $start.innerHTML = '&#x25A0;';
+    $recordsTable.replaceChildren();
+    $startButton.innerHTML = '&#x25A0;';
   }
 
-  function stopQuery() {
+  /**
+   * Stop query
+   */
+  function handleStopQuery() {
     status = 'Complete';
     vscode.postMessage({ type: 'stop' });
-    $start.innerHTML = '&#x25B6;';
+    $startButton.innerHTML = '&#x25B6;';
   }
 
+  /**
+   * Receive new query from extenstion and update ui
+   */
   function handleUpdateQuery({ payload: query }) {
     setState({ query });
 
-    if (query.relativeTime) {
-
-      const mc = query.relativeTime.match(/^(P|PT)(\d+)([MHDWY])$/);
-      console.log(mc);
-
-      $relativevalue.value = +mc[2];
-
-      const res = query.relativeTime.replace(mc[2], 'n');
-
-      console.log(res);
-
-      $relativetype.value = res;
-
-
-
-
-    }
-
     // Log groups
     const logGroupNames = query.logGroupName ? [query.logGroupName] : query.logGroupNames;
-    $groups_list.innerHTML = logGroupNames.join(', ');
+    $groupsList.innerHTML = logGroupNames.join(', ');
 
     // Time spans
-    // $spanSelector
+    query.relativeTime ? initializeRelativeSpan(query.relativeTime) : initializeAbsoluteSpan(query.startTime, query.endTime);
 
-    query.relativeTime ? selectRelativeSpan() : selectAbsoluteSpan();
-
-
-    
-
-    $textarea.value = query.queryString ?? '';
+    // Filter
+    $filterValue.value = query.queryString ?? '';
   }
 
-  function selectRelativeSpan() {
+  function handleSelectSpan(relative) {
+    const { query } =  vscode.getState();
+    if (query.relativeTime === relative) { return }
 
-    console.log('selectRelativeSpan');
+    query.relativeTime = query.startTime = query.endTime = undefined;
+    Object.assign(query, relative ? initializeRelativeSpan() : initializeAbsoluteSpan());
 
-    $spanSelector.firstChild.classList.add('span-active');
-    $spanSelector.lastChild.classList.remove('span-active');
-
-    const $spanRelative = document.getElementById('span-relative');
-    const $spanAbsolute = document.getElementById('span-absolute');
-
-    $spanRelative.classList.remove('hide');
-    $spanAbsolute.classList.add('hide');
-
-
-
-
-
-
-
-
-
-    // $spanSelector.firstChild.classList.toggle('span-active');
-    // $spanSelector.lastChild.classList.toggle('span-active');
-
-
-    // console.log('AAAA', event.target.getAttribute('for'));
-
-
-
+    setState({ query });
+    vscode.postMessage({ type: 'query', payload: query });
   }
 
-  function selectAbsoluteSpan() {
+  function switchTimeSpan(active, inactive) {
+    document.getElementById(`selector-${active}`).classList.add('span-active');
+    document.getElementById(`selector-${inactive}`).classList.remove('span-active');
 
-    console.log('selectAbsoluteSpan');
+    document.getElementById(active).classList.remove('hide');
+    document.getElementById(inactive).classList.add('hide');
+  }
 
-    $spanSelector.firstChild.classList.remove('span-active');
-    $spanSelector.lastChild.classList.add('span-active');
+  function initializeRelativeSpan(initial) {
+    const [ relativeTime, _, value ] = (initial || '').match(/^(P|PT)(\d+)([MHDWY])$/) || [ 'PT15M', 'PT', 15 ];
 
-    const $spanRelative = document.getElementById('span-relative');
-    const $spanAbsolute = document.getElementById('span-absolute');
+    $relativeValue.value = +value;
+    $relativeType.value = relativeTime.replace(value, 'n');
 
-    $spanRelative.classList.add('hide');
-    $spanAbsolute.classList.remove('hide');
+    switchTimeSpan('span-relative', 'span-absolute');
+    return { relativeTime };
+  }
 
+  function initializeAbsoluteSpan(startTime, endTime) {
+    endTime = endTime || Math.floor((new Date()).getTime() / 1000);
+    startTime = startTime || (endTime - 15 * 60);
 
+    $absoluteStartValue.value = getDateString(startTime * 1000);
+    $absoluteEndValue.value = getDateString(endTime * 1000);
 
+    switchTimeSpan('span-absolute', 'span-relative');
+    return { startTime, endTime };
   }
 
   /**
    * Render records
    */
   function handleUpdateRecords({ payload }) {
-    const $table = document.getElementsByClassName('records-table')[0]
+    const $recordsTable = document.getElementsByClassName('records-table')[0]
     const $fragment = document.createDocumentFragment();
 
     status = payload.status;
     if (status !== 'Running') {
-      $start.innerHTML = '&#x25B6;';
+      $startButton.innerHTML = '&#x25B6;';
     }
 
     const { results } = payload;
@@ -189,7 +169,7 @@
       });
     });
     
-    $table.replaceChildren($fragment);
+    $recordsTable.replaceChildren($fragment);
   }
 
   /**
@@ -252,10 +232,16 @@
     return current;
   }
 
+  function handleUpdaeAbsoluteValue(selector, value) {
+    console.log(selector, value, Date.parse(value) / 1000);
+
+    
+  }
+
   function updateQuery(key, value) {
     if (key === 'relativeType' || key === 'relativeValue') {
       key = 'relativeTime';
-      value = $relativetype.value.replace('n', $relativevalue.value);
+      value = $relativeType.value.replace('n', $relativeValue.value);
     }
 
     const payload = { ...vscode.getState().query, ...{ [key]: value }};
@@ -265,6 +251,14 @@
 
   function setState(state) {
     vscode.setState({ ...vscode.getState(), ...state });
+  }
+
+  /**
+   * Convert Date to format for input[type=datetime-local]
+   */
+  function getDateString(date) {
+    const newDate = date ? new Date(date) : new Date();
+    return new Date(newDate.getTime() - newDate.getTimezoneOffset() * 60000).toISOString().slice(0, -1); 
   }
 
 }());
